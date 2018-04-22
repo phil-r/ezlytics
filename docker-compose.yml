@@ -1,0 +1,36 @@
+version: '3'
+services:
+
+  mongo:
+    restart: always
+    image: mongo:3.6.4
+    volumes:
+      - ./mongo:/data/db
+    ports:
+      - 27017:27017
+
+
+  metabase:
+    restart: always
+    image: metabase/metabase
+    environment:
+      - "MB_DB_FILE=/metabase-data/metabase.db"
+    volumes:
+      - ./metabase:/metabase-data
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongo
+
+
+  # api:
+  #   restart: always
+  #   build: .
+  #   # command: npm start
+  #   command: npm run watch
+  #   volumes:
+  #     - ./src:/app/src
+  #   ports:
+  #     - 8080:8080
+  # depends_on:
+  #     - mongo

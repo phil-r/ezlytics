@@ -1,0 +1,7 @@
+/metabase/*
+/metabase/.gitkeep
+/mongo/*
+/mongo/.gitkeep
+/node_modules
+
+!*.gitkeep
