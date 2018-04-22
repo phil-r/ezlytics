@@ -1,13 +1,14 @@
 const querystring = require('querystring');
+const mongoose = require('mongoose');
 const fastify = require('fastify')();
-
 const cors = require('cors');
+
 fastify.use(cors());
 
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/hits');
-
 const DEFAULT_UNKNOWN = '(unknown)';
+const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
+
+mongoose.connect(`mongodb://${MONGO_HOST}/hits`);
 
 const HitSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
