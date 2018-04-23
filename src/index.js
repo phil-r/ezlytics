@@ -11,17 +11,21 @@ const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
 mongoose.connect(`mongodb://${MONGO_HOST}/hits`);
 
 const HitSchema = new mongoose.Schema({
-  date: { type: Date, default: Date.now },
   type: { type: String, default: 'event', enum: ['event', 'pageview'] },
-  acceptLanguage: { type: String, default: DEFAULT_UNKNOWN },
-  userAgent: { type: String, default: DEFAULT_UNKNOWN },
+  date: { type: Date, default: Date.now },
+  url: { type: String, default: DEFAULT_UNKNOWN },
+  page: { type: String, default: DEFAULT_UNKNOWN },
+  host: { type: String, default: DEFAULT_UNKNOWN },
+  referrer: { type: String, default: DEFAULT_UNKNOWN },
+  // event
   category: { type: String, default: DEFAULT_UNKNOWN },
-  referer: { type: String, default: DEFAULT_UNKNOWN },
   action: { type: String, default: DEFAULT_UNKNOWN },
   label: { type: String, default: DEFAULT_UNKNOWN },
-  host: { type: String, default: DEFAULT_UNKNOWN },
-  page: { type: String, default: DEFAULT_UNKNOWN },
-  url: { type: String, default: DEFAULT_UNKNOWN }
+  // headers
+  acceptLanguageHeader: { type: String, default: DEFAULT_UNKNOWN },
+  userAgentHeader: { type: String, default: DEFAULT_UNKNOWN },
+  referrerHeader: { type: String, default: DEFAULT_UNKNOWN },
+  hostHeader: { type: String, default: DEFAULT_UNKNOWN },
 });
 
 const Hit = mongoose.model('Hit', HitSchema);
@@ -36,13 +40,13 @@ fastify.addContentTypeParser(
 
 fastify.post('/', async (request, reply) => {
   reply.code(204).send();
-  console.log(request.body);
-  console.log(request.headers);
+  console.log('body:', request.body);
+  console.log('headers:', request.headers);
   const hit = new Hit({
-    acceptLanguage: request.headers['accept-language'],
-    userAgent: request.headers['user-agent'],
-    referer: request.headers['referer'],
-    host: request.headers['host'],
+    acceptLanguageHeader: request.headers['accept-language'],
+    userAgentHeader: request.headers['user-agent'],
+    referrerHeader: request.headers['referer'],
+    hostHeader: request.headers['host'],
     ...request.body
   });
   const result = await hit.save();
