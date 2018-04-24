@@ -8,7 +8,30 @@ fastify.use(cors());
 const DEFAULT_UNKNOWN = '(unknown)';
 const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
 
-mongoose.connect(`mongodb://${MONGO_HOST}/hits`);
+async function connectMongo() {
+  console.log('connect mongo');
+  return await mongoose.connect(`mongodb://${MONGO_HOST}/hits`, {
+    poolSize: 10,
+    autoReconnect: true,
+    reconnectTries: Number.MAX_VALUE,
+    reconnectInterval: 1000
+  });
+}
+
+async function initializeConnection() {
+  // api starts faster then mongo service 😰
+  try {
+    await connectMongo();
+  } catch (e) {
+    setTimeout(initializeConnection, 1000);
+  }
+}
+
+initializeConnection();
+const db = mongoose.connection;
+db.on('error', err => console.error('Mongo connection error:', err));
+db.on('connected', () => console.log('Mongo connected!'));
+db.on('disconnected', () => console.log('Mongo disconnected!'));
 
 const HitSchema = new mongoose.Schema({
   type: { type: String, default: 'event', enum: ['event', 'pageview'] },
@@ -25,7 +48,7 @@ const HitSchema = new mongoose.Schema({
   acceptLanguageHeader: { type: String, default: DEFAULT_UNKNOWN },
   userAgentHeader: { type: String, default: DEFAULT_UNKNOWN },
   referrerHeader: { type: String, default: DEFAULT_UNKNOWN },
-  hostHeader: { type: String, default: DEFAULT_UNKNOWN },
+  hostHeader: { type: String, default: DEFAULT_UNKNOWN }
 });
 
 const Hit = mongoose.model('Hit', HitSchema);
@@ -50,7 +73,7 @@ fastify.post('/', async (request, reply) => {
     ...request.body
   });
   const result = await hit.save();
-  console.log(hit.toJSON());
+  console.log('hit:', hit.toJSON());
 });
 
 fastify.listen(8080, '0.0.0.0', function(err) {
